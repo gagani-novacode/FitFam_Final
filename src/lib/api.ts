@@ -1,9 +1,11 @@
 import axios from "axios";
 
-const BASE_URL =
+const rawBase =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   (typeof process !== "undefined" && process.env?.VITE_BACKEND_URL) ||
   "https://dsc-vitamins-boot-employers.trycloudflare.com";
+
+const BASE_URL = rawBase.replace(/\/+$/, "");
 
 const API_URL = BASE_URL + "/api/v1";
 
