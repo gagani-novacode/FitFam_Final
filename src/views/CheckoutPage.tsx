@@ -42,55 +42,23 @@ function submitPayHereForm(payment: Record<string, string>) {
 }
 
 // ── Koko: load SDK and trigger widget (real credentials) ──────────────────
-function submitKokoPayment(payment: Record<string, string>): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const KOKO_SDK_URL = 'https://qaapi.paykoko.com/assets/js/koko.js';
-
-    const loadSdk = (): Promise<void> => {
-      return new Promise((res, rej) => {
-        if ((window as any).KOKO) { res(); return; }
-        const existing = document.querySelector(`script[src="${KOKO_SDK_URL}"]`);
-        if (existing) {
-          existing.addEventListener('load', () => res());
-          existing.addEventListener('error', () => rej(new Error('Failed to load Koko SDK')));
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = KOKO_SDK_URL;
-        script.async = true;
-        script.onload = () => res();
-        script.onerror = () => rej(new Error('Failed to load Koko SDK'));
-        document.head.appendChild(script);
-      });
-    };
-
-    loadSdk().then(() => {
-      const koko = (window as any).KOKO;
-      if (!koko) { reject(new Error('Koko SDK not available')); return; }
-      koko.pay({
-        _mId: payment._mId,
-        api_key: payment.api_key,
-        _returnUrl: payment._returnUrl,
-        _cancelUrl: payment._cancelUrl,
-        _responseUrl: payment._responseUrl,
-        _amount: payment._amount,
-        _currency: payment._currency,
-        _reference: payment._reference,
-        _orderId: payment._orderId,
-        _pluginName: payment._pluginName,
-        _pluginVersion: payment._pluginVersion,
-        _description: payment._description,
-        _firstName: payment._firstName,
-        _lastName: payment._lastName,
-        _email: payment._email,
-        dataString: payment.dataString,
-        signature: payment.signature,
-        onSuccess: () => resolve(),
-        onError: (err: any) => reject(new Error(err?.message || 'Koko payment failed')),
-        onCancel: () => reject(new Error('Koko payment was cancelled')),
-      });
-    }).catch(reject);
+// ── Koko: Form POST submission (Official Koko Gateway Flow) ─────────────────
+function submitKokoPayment(payment: Record<string, any>) {
+  const actionUrl = payment._action_url || 'https://qaapi.paykoko.com/api/merchants/orderCreate';
+  const { _action_url, ...fields } = payment;
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = actionUrl;
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = String(value);
+    form.appendChild(input);
   });
+  document.body.appendChild(form);
+  form.submit();
 }
 
 // ── Shared input class ────────────────────────────────────────────────────
@@ -268,9 +236,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
         // Direct form POST to PayHere (Sandbox or Production)
         submitPayHereForm(payRes.data.payment);
       } else if (paymentMethod === 'koko') {
-        setPendingOrderRef(orderRef);
-        setIsProcessing(false);
-        setShowKokoMock(true);
+        const payRes = await api.post('/koko/store/checkout', { orderRef });
+        if (!payRes.data.ok || !payRes.data.payment) {
+          throw new Error(payRes.data.error || 'Could not initialize Koko payment.');
+        }
+
+        if (payRes.data.mock) {
+          setPendingOrderRef(orderRef);
+          setIsProcessing(false);
+          setShowKokoMock(true);
+        } else {
+          if (!isBuyNow) {
+            localStorage.setItem('fitfam_clear_cart_on_success', '1');
+          }
+          await submitKokoPayment(payRes.data.payment);
+        }
       }
     } catch (err: any) {
       console.error('Checkout error:', err);

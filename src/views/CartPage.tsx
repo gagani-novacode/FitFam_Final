@@ -40,7 +40,7 @@ export const CartPage: React.FC<CartPageProps> = ({
         const priceToUse = item.product.salePrice !== undefined ? item.product.salePrice : item.product.price;
         return sum + priceToUse * item.quantity;
     }, 0);
-    const deliveryFee = 500;
+    const deliveryFee = cartItems.length > 0 ? 500 : 0;
     const total = subtotal + deliveryFee;
 
     return (
