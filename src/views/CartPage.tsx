@@ -6,6 +6,7 @@ import { ChevronRight, ShoppingBag, Trash2, Minus, Plus, ArrowRight } from 'luci
 import { Product } from '../data/products';
 import { Footer } from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
+import { fixImageUrl } from '../lib/api';
 
 interface CartItem {
     product: Product;
@@ -114,7 +115,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                                             className="w-20 h-24 sm:w-24 sm:h-28 flex-shrink-0 bg-gray-50 overflow-hidden cursor-pointer"
                                             onClick={() => router.push(`/product/${product.id}`)}
                                         >
-                                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+                                            <img src={fixImageUrl(product.image, 200)} alt={product.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                         </div>
 
                                         {/* Details */}

@@ -20,6 +20,9 @@ export interface Product {
   stock?: Record<string, number>;
   subText?: string;
   description?: string;
+  descriptionAbout?: string;
+  descriptionFeatures?: string;
+  descriptionCare?: string;
   details?: string[];
   features?: string[];
 }

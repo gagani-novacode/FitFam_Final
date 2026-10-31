@@ -2,8 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React from 'react';
-// @ts-ignore
-const heroBgImage = "/hero-bg.jpg";
+import Image from 'next/image';
 import { Button } from '../ui/Button';
 
 interface HeroSectionProps {
@@ -20,15 +19,14 @@ export const HeroSection: React.FC<HeroSectionProps> = () => {
 
       {/* Background Image Container */}
       <div className="absolute inset-0 w-full h-full">
-        <img
-          src={heroBgImage}
+        <Image
+          src="/hero-bg.jpg"
           alt="FITFAM Athletes"
-          /* 2. IMAGE: 
-                Changed mobile to 'absolute h-full object-cover' to cleanly fill the brand new 
-                75vh tall container space without leaving empty background gaps.
-          */
-          className="absolute inset-0 w-full h-full object-cover object-top"
-          referrerPolicy="no-referrer"
+          fill
+          priority
+          sizes="100vw"
+          quality={85}
+          className="object-cover object-top"
         />
         {/* Subtle overlay */}
         <div className="absolute inset-0 bg-white/5 pointer-events-none" />

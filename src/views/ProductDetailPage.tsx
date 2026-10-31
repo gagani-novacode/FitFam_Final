@@ -6,6 +6,7 @@ import { ChevronRight, Share2, ShoppingBag, X, Ruler, Plus, Minus, Zap } from 'l
 import { Product } from '../data/products';
 import { ProductCard } from '../components/ui/ProductCard';
 import { Footer } from '../components/layout/Footer';
+import { fixImageUrl } from '../lib/api';
 
 interface ProductDetailPageProps {
     products: Product[];
@@ -251,9 +252,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                                             }`}
                                     >
                                         <img
-                                            src={img}
+                                            src={fixImageUrl(img, 200)}
                                             alt={`Thumbnail ${i + 1}`}
                                             className="w-full h-full object-cover object-center"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     </button>
                                 ))}
@@ -264,9 +267,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                         <div className="relative flex-1 aspect-[3/4] bg-[#f8f8f8] overflow-hidden">
                             <img
                                 key={activeImageIndex}
-                                src={allImages[activeImageIndex]}
+                                src={fixImageUrl(allImages[activeImageIndex], 1200)}
                                 alt={`${product.name} - image ${activeImageIndex + 1}`}
                                 className="w-full h-full object-cover object-center transition-opacity duration-300"
+                                decoding="async"
                             />
                             {product.badge && (
                                 <span className="absolute top-4 left-4 bg-[#111111] text-white font-chakra font-normal text-[9px] uppercase tracking-[0.3em] px-2.5 py-1">
@@ -393,7 +397,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                                         <Minus className="w-3.5 h-3.5 hidden group-open:block" />
                                     </span>
                                 </summary>
-                                <p className="mt-3 text-xs text-gray-500 leading-relaxed font-sans">
+                                <p className="mt-3 text-xs text-gray-500 leading-relaxed font-sans whitespace-pre-line">
                                     {(product as any).descriptionAbout || product.description ||
                                         `Introducing the ${product.name}. Built for daily performance and training, constructed with lightweight water-resistant material.`
                                     }
@@ -402,27 +406,31 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
                             <details className="group py-3 cursor-pointer">
                                 <summary className="flex justify-between items-center text-[11px] uppercase tracking-widest text-[#111111] list-none font-medium">
-                                    Designed For
+                                    Features
                                     <span className="transition group-open:rotate-180">
                                         <Plus className="w-3.5 h-3.5 group-open:hidden" />
                                         <Minus className="w-3.5 h-3.5 hidden group-open:block" />
                                     </span>
                                 </summary>
-                                <p className="mt-3 text-xs text-gray-500 leading-relaxed font-sans">
-                                    Gym workouts, daily athletic wear, and outdoor mobility training.
+                                <p className="mt-3 text-xs text-gray-500 leading-relaxed font-sans whitespace-pre-line">
+                                    {(product as any).descriptionFeatures ||
+                                        "Gym workouts, daily athletic wear, and outdoor mobility training."
+                                    }
                                 </p>
                             </details>
 
                             <details className="group py-3 cursor-pointer">
                                 <summary className="flex justify-between items-center text-[11px] uppercase tracking-widest text-[#111111] list-none font-medium">
-                                    Fabric + Technology
+                                    Care & Fabric
                                     <span className="transition group-open:rotate-180">
                                         <Plus className="w-3.5 h-3.5 group-open:hidden" />
                                         <Minus className="w-3.5 h-3.5 hidden group-open:block" />
                                     </span>
                                 </summary>
-                                <p className="mt-3 text-xs text-gray-500 leading-relaxed font-sans">
-                                    TETRA-LITE® Water-Resistant & Breathable 4-way stretch blend fabric.
+                                <p className="mt-3 text-xs text-gray-500 leading-relaxed font-sans whitespace-pre-line">
+                                    {(product as any).descriptionCare ||
+                                        "TETRA-LITE® Water-Resistant & Breathable 4-way stretch blend fabric."
+                                    }
                                 </p>
                             </details>
                         </div>

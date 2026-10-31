@@ -146,7 +146,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
   const [pendingOrderRef, setPendingOrderRef] = useState<string | null>(null);
   const [snapshotItems, setSnapshotItems] = useState<CartItem[]>([]);
   const [returnedFromPayHere, setReturnedFromPayHere] = useState(false);
-  
+
   const [discountCodeInput, setDiscountCodeInput] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percentage: number } | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
@@ -158,7 +158,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
     return acc + priceToUse * item.quantity;
   }, 0);
   const deliveryFee = displayItems.length > 0 ? 500 : 0;
-  
+
   const discountAmount = appliedDiscount ? Math.round(cartSubtotal * (appliedDiscount.percentage / 100)) : 0;
   const orderTotal = cartSubtotal - discountAmount + deliveryFee;
 
@@ -191,7 +191,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
     setErrorMessage(null);
     setSnapshotItems(effectiveCartItems);
 
-    if (!billingDetails.firstName || !billingDetails.lastName || !billingDetails.address || !billingDetails.phone || !billingDetails.email) {
+    if (
+      !billingDetails.firstName ||
+      !billingDetails.lastName ||
+      !billingDetails.address ||
+      !billingDetails.phone ||
+      !billingDetails.email
+    ) {
       setErrorMessage('Please fill in all mandatory billing details.');
       return;
     }
@@ -203,9 +209,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
     setIsProcessing(true);
 
     try {
+      // 1. Get or initialize an active cart
       const cartRes = await api.get('/store/cart');
       const { orderRef } = cartRes.data.cart;
 
+      // 2. Sync items to the backend cart
       for (const item of effectiveCartItems) {
         await api.post('/store/cart/add', {
           orderRef,
@@ -215,6 +223,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
         });
       }
 
+      // 3. Apply discount if available
       if (appliedDiscount) {
         await api.post('/store/cart/discount/apply', {
           orderRef,
@@ -222,6 +231,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
         });
       }
 
+      // 4. Move cart to checkout status with customer details
       const checkoutRes = await api.post('/store/checkout', {
         orderRef,
         customer: {
@@ -240,24 +250,23 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
         throw new Error(checkoutRes.data.error || 'Checkout failed. Please try again.');
       }
 
+      // Store pending orderRef for reference after payment return
       localStorage.setItem('fitfam_pending_orderRef', orderRef);
-      console.log("--- TEST LOG: PAYHERE ORDER REFERENCE IS:", orderRef);
+      console.log('--- PAYHERE ORDER REFERENCE IS:', orderRef);
 
+      // 5. Handle Payment Method
       if (paymentMethod === 'payhere') {
         const payRes = await api.post('/payhere/store/checkout', { orderRef });
-        if (!payRes.data.ok) {
+        if (!payRes.data.ok || !payRes.data.payment) {
           throw new Error(payRes.data.error || 'Could not initialize PayHere payment.');
         }
+
         if (!isBuyNow) {
           localStorage.setItem('fitfam_clear_cart_on_success', '1');
         }
-        
-        // For local testing, bypass real PayHere redirect since webhooks might fail over tunnels
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          router.push(`/payment/mock?orderRef=${orderRef}&amount=${orderTotal}&currency=LKR`);
-        } else {
-          submitPayHereForm(payRes.data.payment);
-        }
+
+        // Direct form POST to PayHere (Sandbox or Production)
+        submitPayHereForm(payRes.data.payment);
       } else if (paymentMethod === 'koko') {
         setPendingOrderRef(orderRef);
         setIsProcessing(false);
@@ -274,6 +283,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, onClearCa
       setIsProcessing(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-white">

@@ -29,9 +29,22 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export function fixImageUrl(url: string): string {
+export function fixImageUrl(url: string, width = 800): string {
   if (!url) return url;
-  return url
+  let fixed = url
     .replace("http://localhost:8080", BASE_URL)
     .replace("https://kangaroo-elude-reshape.ngrok-free.dev", BASE_URL);
+
+  // Auto-optimize Cloudinary URLs: inject automatic WebP/AVIF format and auto quality
+  if (fixed.includes("res.cloudinary.com") && fixed.includes("/image/upload/")) {
+    if (!fixed.includes("f_auto")) {
+      fixed = fixed.replace(
+        "/image/upload/",
+        `/image/upload/f_auto,q_auto,w_${width},c_limit/`
+      );
+    }
+  }
+
+  return fixed;
 }
+

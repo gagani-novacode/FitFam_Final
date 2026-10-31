@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
+import { fixImageUrl } from '../../lib/api';
 
 interface CategoryCardProps {
   name: string;
@@ -18,11 +19,12 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
     >
       {/* Background Image */}
       <img
-        src={image}
+        src={fixImageUrl(image, 800)}
         alt={name}
         className="w-full h-full object-cover transition-transform duration-700 ease-out"
         referrerPolicy="no-referrer"
         loading="lazy"
+        decoding="async"
       />
 
       {/* Dark gradient overlay + Uniform darken overlay on hover */}

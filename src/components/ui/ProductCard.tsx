@@ -35,20 +35,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Primary image */}
         <img
-          src={fixImageUrl(image)}
+          src={fixImageUrl(image, 600)}
           alt={name}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${hoverImage ? 'md:group-hover:opacity-0' : ''}`}
           loading="lazy"
+          decoding="async"
           referrerPolicy="no-referrer"
         />
 
         {/* Hover image */}
         {hoverImage && (
           <img
-            src={fixImageUrl(hoverImage)}
+            src={fixImageUrl(hoverImage, 600)}
             alt={name}
             className="absolute inset-0 w-full h-full object-cover opacity-0 md:group-hover:opacity-100 transition-opacity duration-500"
             loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
           />
         )}

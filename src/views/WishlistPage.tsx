@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { ChevronRight, Heart, ShoppingBag, Trash2 } from 'lucide-react';
 import { Product } from '../data/products';
 import { Footer } from '../components/layout/Footer';
+import { fixImageUrl } from '../lib/api';
 
 interface WishlistPageProps {
     wishlistItems: Product[];
@@ -91,10 +92,11 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
                                             onClick={() => router.push(`/product/${product.id}`)}
                                         >
                                             <img
-                                                src={product.image}
+                                                src={fixImageUrl(product.image, 600)}
                                                 alt={product.name}
                                                 className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                                                 loading="lazy"
+                                                decoding="async"
                                             />
                                             {product.badge && (
                                                 <span className="absolute top-3 left-3 bg-[#111111] text-white font-chakra font-normal text-[9px] uppercase tracking-[0.3em] px-2 py-0.5">
